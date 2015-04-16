@@ -7,39 +7,39 @@ var async = require('async')
 var fs = require('fs-extra')
 var hash = require('hash_file')
 var path = require('path')
-var request = require('request')
+var crypto = require('crypto')
+
 var uploadToSftpServer = require('../..').warez.uploadToSftpServer
 
 describe('uploadToSftpServer', function() {
 
+    this.slow(2000)
+
     var uploads = path.join(__dirname, '../data/uploads')
+    var message = {}
 
     beforeEach(function(done) {
-        fs.remove(uploads, function(err) {
-            if (err) return done(err)
-            fs.mkdirp(uploads, '0777', done)
-        })
+        async.series([
+            fs.remove.bind(fs, uploads),
+            fs.mkdirp.bind(fs, uploads),
+            fs.chmod.bind(fs, uploads, '0777')
+        ], done)
     })
 
     after(function(done) {
         fs.remove(uploads, done)
     })
 
-    xit('should report connection errors', function(done) {
-
-        var message = {
-            qsftp: {
-                content: 'foo'
-            }
-        }
-
+    it('should report connection errors', function(done) {
         uploadToSftpServer({
-            hostname: 'this-server-should-not-resolve-12asdf32',
-            username: 'fred'
+            host: 'this-server-should-not-resolve-12asdf32',
+            port: 10022,
+            username: 'fred',
+            password: 'bad'
         }, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
-                assert.ok(err)
+                assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'getaddrinfo ENOTFOUND')
                 done()
             })
@@ -47,33 +47,27 @@ describe('uploadToSftpServer', function() {
     })
 
     it('should report authentication errors', function(done) {
-
-        var message = {
-            qsftp: {
-            }
-        }
-
         uploadToSftpServer({
             hostname: 'localhost',
             port: 10022,
-            username: 'unknown'
+            username: 'fred',
+            password: 'bad'
         }, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
-                assert.ok(err, 'Expected authenication error')
+                assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'All configured authentication methods failed')
                 done()
             })
         })
     })
 
-    it('should report upload errors', function(done) {
+    it('should report failed uploads errors', function(done) {
 
         var message = {
             qsftp: {
-                directory: 'bad',
-                filename: 'foo.txt',
-                content: 'foo'
+                directory: 'doesnotexist',
+                filename: 'foo.txt'
             }
         }
 
@@ -85,14 +79,14 @@ describe('uploadToSftpServer', function() {
         }, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
-                assert.ok(err)
+                assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'No such file')
                 done()
             })
         })
     })
 
-    xit('should upload a message to the remote sftp server', function(done) {
+    it('should upload a simple message to a remote ftp server', function(done) {
 
         var message = {
             qsftp: {
@@ -106,65 +100,25 @@ describe('uploadToSftpServer', function() {
             hostname: 'localhost',
             port: 10022,
             username: 'fred',
-            password: 'password'
+            password: 'password',
         }, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ifError(err)
-                hash(path.join(uploads, 'foo.txt'), 'sha1', function(err, sha) {
-                    assert.ifError(err)
-                    assert.equal(sha, '0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33', 'File contents is incorrect')
-                    done()
-                })
+                shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, done)
             })
         })
     })
 
-    xit('should upload a really big message to the remote sftp server', function(done) {
+    it('should upload a large message to a remote ftp server', function(done) {
 
-        this.timeout(5000)
-        this.slow(4000)
-
-        request('https://androidnetworktester.googlecode.com/files/1mb.txt', function(err, response, body) {
-            assert.ifError(err)
-            assert.ok(/2.*/.test(response.statusCode), format('Error downloading 1mb.txt: %s', response.statusCode))
-
-            var message = {
-                qsftp: {
-                    directory: 'uploads',
-                    filename: '1mb.txt',
-                    content: body
-                }
-            }
-
-            uploadToSftpServer({
-                hostname: 'localhost',
-                port: 10022,
-                username: 'fred',
-                password: 'password'
-            }, function(err, middleware) {
-                assert.ifError(err)
-                middleware(message, 'content', function(err) {
-                    hash(path.join(uploads, '1mb.txt'), 'sha1', function(err, sha) {
-                        assert.ifError(err)
-                        assert.equal(sha, '1e225b865db0a51abe8a3313fe4ea7c418e6e45e', 'File contents is incorrect')
-                        done()
-                    })
-                })
-            })
-        })
-    })
-
-
-    xit('should upload lots of files', function(done) {
-
-        this.timeout(60000)
-        this.slow(60000)
+        var content = crypto.pseudoRandomBytes(1024 * 1024).toString('hex')
 
         var message = {
             qsftp: {
                 directory: 'uploads',
-                content: 'foo'
+                filename: '1mb.txt',
+                content: content
             }
         }
 
@@ -172,38 +126,83 @@ describe('uploadToSftpServer', function() {
             hostname: 'localhost',
             port: 10022,
             username: 'fred',
-            password: 'password'
+            password: 'password',
         }, function(err, middleware) {
             assert.ifError(err)
-
-            var q = async.queue(function (message, cb) {
-                middleware(message, 'content', cb)
-            }, 10)
-
-            q.pause()
-
-            _.times(100, function(index) {
-                message = _.cloneDeep(message)
-                message.qsftp.filename = _.padLeft(index, 3, '0') + '.txt'
-                q.push(message)
+            middleware(message, 'content', function(err) {
+                assert.ifError(err)
+                shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, done)
             })
-
-            q.drain = function() {
-                fs.readdir(uploads, function(err, files) {
-                    assert.ifError(err)
-                    assert.equal(files.length, 100)
-                    done()
-                })
-            }
-
-            q.resume()
-
         })
     })
 
-    it('should upload a message to the specified directory on the remote sftp server')
+    it('should upload a lots of message to a remote ftp server', function(done) {
 
-    it('should report authentication errors')
+        var numMessages = 1000
+        this.timeout(numMessages * 500)
+        this.slow(numMessages * 500)
 
-    it('should create directories when needed')
+        var debug = require('debug')('qsftp:tests')
+
+        uploadToSftpServer({
+            hostname: 'localhost',
+            port: 10022,
+            username: 'fred',
+            password: 'password',
+            debug: debug
+        }, function(err, middleware) {
+            assert.ifError(err)
+
+            var q = async.queue(function(message, next) {
+                middleware(message, 'content', function(err) {
+                    assert.ifError(err)
+                    shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, next)
+                })
+            }, 1)
+
+            _.times(numMessages, function(index) {
+                q.push({
+                    qsftp: {
+                        directory: 'uploads',
+                        filename: _.padLeft(index + '.txt', 3, '0'),
+                        content: crypto.pseudoRandomBytes(10).toString('hex')
+                    }
+                })
+            })
+
+            q.drain = function(err) {
+                assert.ifError(err)
+                fs.readdir(uploads, function(err, files) {
+                    assert.ifError(err)
+                    assert.equal(files.length, numMessages)
+                    done()
+                })
+            }
+        })
+    })
+
+
+    function shaka(file, text, next) {
+        async.parallel({
+            file: sha1File(file),
+            text: sha1Text(text)
+        }, function(err, sha) {
+            if (err) return next(err)
+            assert.equal(sha.file, sha.text)
+            next()
+        })
+    }
+
+    var sha1Text = _.curry(function(text, next) {
+        var shasum = crypto.createHash('sha1')
+        shasum.update(text)
+        next(null, shasum.digest('hex'))
+    })
+
+    var sha1File = _.curry(function sha1File(filename, next) {
+        fs.readFile(filename, { encoding: 'utf-8' }, function(err, text) {
+            if (err) return next(err)
+            sha1Text(text, next)
+        })
+    })
 })
