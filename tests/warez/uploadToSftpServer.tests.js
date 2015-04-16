@@ -164,7 +164,7 @@ describe('uploadToSftpServer', function() {
                 q.push({
                     qsftp: {
                         directory: 'uploads',
-                        filename: _.padLeft(index + '.txt', 3, '0'),
+                        filename: _.padLeft(index + '.txt', 4, '0'),
                         content: crypto.pseudoRandomBytes(10).toString('hex')
                     }
                 })
