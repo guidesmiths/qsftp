@@ -136,10 +136,11 @@ describe('uploadToSftpServer', function() {
 
     it('should upload a lots of message to a remote ftp server', function(done) {
 
-        var numMessages = 1000
-        var numErrors = 0
         this.timeout(numMessages * 500)
         this.slow(numMessages * 500)
+
+        var numMessages = 1000
+        var numErrors = 0
 
         var debug = require('debug')('qsftp:tests')
 
