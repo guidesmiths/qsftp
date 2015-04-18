@@ -5,7 +5,6 @@ var assert = require('assert')
 var _ = require('lodash')
 var async = require('async')
 var fs = require('fs-extra')
-var hash = require('hash_file')
 var path = require('path')
 var crypto = require('crypto')
 
@@ -18,8 +17,7 @@ describe('uploadToSftpServer', function() {
     var uploads = path.join(__dirname, '../data/uploads')
     var message = {
         qsftp: {
-            directory: 'uploads',
-            filename: 'foo.txt',
+            path: 'uploads/foo.txt',
             content: 'foo'
         }
     }
@@ -42,7 +40,7 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'bad'
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
@@ -58,7 +56,7 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'bad'
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
@@ -72,8 +70,7 @@ describe('uploadToSftpServer', function() {
 
         var message = {
             qsftp: {
-                directory: 'doesnotexist',
-                filename: 'foo.txt'
+                path: 'doesnotexist/foo.txt'
             }
         }
 
@@ -82,7 +79,7 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'password'
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
@@ -99,11 +96,11 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'password',
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ifError(err)
-                shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, done)
+                shaka(message.qsftp.path, message.qsftp.content, done)
             })
         })
     })
@@ -114,8 +111,7 @@ describe('uploadToSftpServer', function() {
 
         var message = {
             qsftp: {
-                directory: 'uploads',
-                filename: '1mb.txt',
+                path: 'uploads/1mb.txt',
                 content: content
             }
         }
@@ -125,11 +121,11 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'password',
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ifError(err)
-                shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, done)
+                shaka(message.qsftp.path, message.qsftp.content, done)
             })
         })
     })
@@ -149,12 +145,11 @@ describe('uploadToSftpServer', function() {
             port: 10022,
             username: 'fred',
             password: 'password'
-        }, function(err, middleware) {
+        }, {}, function(err, middleware) {
             assert.ifError(err)
-
             var q = async.queue(function(message, next) {
                 middleware(message, 'content', function(err) {
-                    if (!err) return shaka(path.join(uploads, message.qsftp.filename), message.qsftp.content, next)
+                    if (!err) return shaka(message.qsftp.path, message.qsftp.content, next)
                     console.warn(err.message)
                     numErrors++
                     next()
@@ -164,8 +159,7 @@ describe('uploadToSftpServer', function() {
             _.times(numMessages, function(index) {
                 q.push({
                     qsftp: {
-                        directory: 'uploads',
-                        filename: _.padLeft(index + '.txt', 4, '0'),
+                        path: 'uploads/' + _.padLeft(index + '.txt', 4, '0'),
                         content: crypto.pseudoRandomBytes(10).toString('hex')
                     }
                 })
@@ -201,7 +195,7 @@ describe('uploadToSftpServer', function() {
     })
 
     var sha1File = _.curry(function sha1File(filename, next) {
-        fs.readFile(filename, { encoding: 'utf-8' }, function(err, text) {
+        fs.readFile(path.join(process.cwd(), 'tests', 'data', filename), { encoding: 'utf-8' }, function(err, text) {
             if (err) return next(err)
             sha1Text(text, next)
         })

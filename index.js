@@ -13,13 +13,9 @@ module.exports = {
     warez: warez
 }
 
-function init(broker, config, ctx, next) {
-    if (arguments.length === 3) return init(broker, config, {}, arguments[2])
-    ctx.broker = broker,
+function init(config, ctx, next) {
+    if (arguments.length === 2) return init(config, {}, arguments[2])
     ctx.warez = _.defaults(ctx.warez || {}, warez)
-    ctx.errorHandler = ctx.errorHandler || function(err, details) {
-        consoler.error(format('Middleware: %s encountered and error', details.middleware, err))
-    }
 
     configure(config, function(err, routeConfig) {
         if (err) return next(err)
