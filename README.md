@@ -142,6 +142,7 @@ Extracts a path (for the sftp upload) by passing the template variables through 
         }
     }
 }
+```
 
 ### uploadToSftpServer
 Uploads the message content to an sftp server using the path specified in message.qsftp.path.
