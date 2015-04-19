@@ -123,9 +123,9 @@ Converts a timestamp (milliseconds since 01/01/1970) into a date string and stor
 {
     "messageTimestampToTemplateVar": {
         "options": {
-            source: '/properties/headers/timestamp',
-            destination: 'date',
-            template: 'YYYY/MM/DD'
+            "source": "/properties/headers/timestamp",
+            "destination: "date",
+            "template": "YYYY/MM/DD"
         }
     }
 }
