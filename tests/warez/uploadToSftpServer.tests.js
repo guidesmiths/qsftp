@@ -7,6 +7,7 @@ var async = require('async')
 var fs = require('fs-extra')
 var path = require('path')
 var crypto = require('crypto')
+var shaka = require('../util/shaka')
 
 var uploadToSftpServer = require('../..').warez.uploadToSftpServer
 
@@ -14,11 +15,10 @@ describe('uploadToSftpServer', function() {
 
     this.slow(2000)
 
-    var uploads = path.join(__dirname, '../data/uploads')
+    var uploads = path.join(process.cwd(), 'tests', 'data', 'uploads')
     var message = {
         qsftp: {
-            path: 'uploads/foo.txt',
-            content: 'foo'
+            path: 'uploads/foo.txt'
         }
     }
 
@@ -98,9 +98,9 @@ describe('uploadToSftpServer', function() {
             password: 'password',
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(message, 'foo', function(err) {
                 assert.ifError(err)
-                shaka(message.qsftp.path, message.qsftp.content, done)
+                shaka(getUploadPath(message.qsftp.path), 'foo', done)
             })
         })
     })
@@ -112,7 +112,6 @@ describe('uploadToSftpServer', function() {
         var message = {
             qsftp: {
                 path: 'uploads/1mb.txt',
-                content: content
             }
         }
 
@@ -123,9 +122,9 @@ describe('uploadToSftpServer', function() {
             password: 'password',
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(message, content, function(err) {
                 assert.ifError(err)
-                shaka(message.qsftp.path, message.qsftp.content, done)
+                shaka(getUploadPath(message.qsftp.path), content, done)
             })
         })
     })
@@ -138,8 +137,6 @@ describe('uploadToSftpServer', function() {
         var numMessages = 1000
         var numErrors = 0
 
-        var debug = require('debug')('qsftp:tests')
-
         uploadToSftpServer({
             hostname: 'localhost',
             port: 10022,
@@ -147,9 +144,9 @@ describe('uploadToSftpServer', function() {
             password: 'password'
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            var q = async.queue(function(message, next) {
-                middleware(message, 'content', function(err) {
-                    if (!err) return shaka(message.qsftp.path, message.qsftp.content, next)
+            var q = async.queue(function(data, next) {
+                middleware(data.message, data.content, function(err) {
+                    if (!err) return shaka(getUploadPath(data.message.qsftp.path), data.content, next)
                     console.warn(err.message)
                     numErrors++
                     next()
@@ -158,10 +155,12 @@ describe('uploadToSftpServer', function() {
 
             _.times(numMessages, function(index) {
                 q.push({
-                    qsftp: {
-                        path: 'uploads/' + _.padLeft(index + '.txt', 4, '0'),
-                        content: crypto.pseudoRandomBytes(10).toString('hex')
-                    }
+                    message: {
+                        qsftp: {
+                            path: 'uploads/' + _.padLeft(index + '.txt', 4, '0'),
+                        }
+                    },
+                    content: crypto.pseudoRandomBytes(20).toString('hex')
                 })
             })
 
@@ -176,28 +175,7 @@ describe('uploadToSftpServer', function() {
         })
     })
 
-
-    function shaka(file, text, next) {
-        async.parallel({
-            file: sha1File(file),
-            text: sha1Text(text)
-        }, function(err, sha) {
-            if (err) return next(err)
-            assert.equal(sha.file, sha.text)
-            next()
-        })
+    function getUploadPath(filename) {
+        return path.join(process.cwd(), 'tests', 'data', filename)
     }
-
-    var sha1Text = _.curry(function(text, next) {
-        var shasum = crypto.createHash('sha1')
-        shasum.update(text)
-        next(null, shasum.digest('hex'))
-    })
-
-    var sha1File = _.curry(function sha1File(filename, next) {
-        fs.readFile(path.join(process.cwd(), 'tests', 'data', filename), { encoding: 'utf-8' }, function(err, text) {
-            if (err) return next(err)
-            sha1Text(text, next)
-        })
-    })
 })

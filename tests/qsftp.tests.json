@@ -1,0 +1,53 @@
+{
+    "qsftp": {
+        "routes": {
+            "book_loan_v1": {
+                "sequence": ["messageToTemplateVars",  "messageToPath", "uploadToSftpServer"],
+                "warez": {
+                    "messageToPath": {
+                        "options": {
+                            "template": "uploads/{{message.properties.messageId}}.txt"
+                        }
+                    },
+                    "uploadToSftpServer": {
+                        "options": {
+                            "hostname": "localhost",
+                            "port": 10022,
+                            "username": "fred",
+                            "password": "password"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "rascal": {
+        "vhosts": {
+            "/": {
+                "namespace": true,
+                "exchanges": {
+                    "e1": {}
+                },
+                "queues": {
+                    "q1": {}
+                },
+                "bindings": {
+                    "b1": {
+                        "source": "e1",
+                        "destination": "q1"
+                    }
+                }
+            }
+        },
+        "publications": {
+            "p1": {
+                "exchange": "e1"
+            }
+        },
+        "subscriptions": {
+            "s1": {
+                "queue": "q1"
+            }
+        }
+    }
+}
