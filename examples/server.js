@@ -23,9 +23,7 @@ createUploadFolder(function(err) {
         qsftp.init(config.qsftp.routes.book_loan_v1, {}, function(err, warez) {
             if (err) return bail(err)
 
-            var middleware = ware()
-
-            middleware.use(warez)
+            var middleware = ware().use(warez)
 
             broker.subscribe('s1', function(err, message, content, ackOrNack) {
                 if (err) return bail(err)
