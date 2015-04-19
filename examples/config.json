@@ -6,7 +6,7 @@
                 "warez": {
                     "messageToPath": {
                         "options": {
-                            "template": "tests/{{message.properties.messageId}}.txt"
+                            "template": "examples/{{message.properties.messageId}}.txt"
                         }
                     },
                     "uploadToSftpServer": {

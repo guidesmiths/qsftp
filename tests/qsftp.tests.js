@@ -16,7 +16,7 @@ describe('qsftp', function() {
     this.timeout(10000)
     this.slow(5000)
 
-    var uploads = path.join(process.cwd(), 'tests', 'data', 'uploads')
+    var uploads = path.join(process.cwd(), 'tests', 'uploads')
     var broker
 
     beforeEach(function(done) {
@@ -62,13 +62,13 @@ describe('qsftp', function() {
             })
 
             middleware.use(function(message, content) {
-                shaka(path.join(uploads, messageId + '.txt'), content, done)
+                shaka(getUploadPath(messageId + '.txt'), content, done)
             })
 
         })
     })
 
     function getUploadPath(filename) {
-        return path.join(process.cwd(), 'tests', 'data', filename)
+        return path.join(uploads, filename)
     }
 })

@@ -2,6 +2,7 @@ sftp:
   image: atmoz/sftp
   command: fred:password:1001
   volumes:
-   - tests/data/uploads:/home/fred/uploads:rw
+   - tests/uploads:/home/fred/tests:rw
+   - examples/uploads:/home/fred/examples:rw
   ports:
    - "10022:22"

@@ -15,10 +15,10 @@ describe('uploadToSftpServer', function() {
 
     this.slow(2000)
 
-    var uploads = path.join(process.cwd(), 'tests', 'data', 'uploads')
+    var uploads = path.join(process.cwd(), 'tests', 'uploads')
     var message = {
         qsftp: {
-            path: 'uploads/foo.txt'
+            path: 'tests/foo.txt'
         }
     }
 
@@ -111,7 +111,7 @@ describe('uploadToSftpServer', function() {
 
         var message = {
             qsftp: {
-                path: 'uploads/1mb.txt',
+                path: 'tests/1mb.txt',
             }
         }
 
@@ -157,7 +157,7 @@ describe('uploadToSftpServer', function() {
                 q.push({
                     message: {
                         qsftp: {
-                            path: 'uploads/' + _.padLeft(index + '.txt', 4, '0'),
+                            path: 'tests/' + _.padLeft(index + '.txt', 4, '0'),
                         }
                     },
                     content: crypto.pseudoRandomBytes(20).toString('hex')
@@ -175,7 +175,7 @@ describe('uploadToSftpServer', function() {
         })
     })
 
-    function getUploadPath(filename) {
-        return path.join(process.cwd(), 'tests', 'data', filename)
+    function getUploadPath(filepath) {
+        return path.join(uploads, path.basename(filepath))
     }
 })
