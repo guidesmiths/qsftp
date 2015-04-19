@@ -112,7 +112,7 @@ qsftp.init(config, { myCustomMiddleware: myCustomMiddleware }, function(err, war
     // ...
 })
 ```
-The following middleware are provide out of the box
+## Provided Middleware
 
 ### messageToTemplateVars
 Copies the raw message and content to message.qsftp.templateVars for use in later middleware
@@ -156,11 +156,4 @@ Uploads the message content to an sftp server using the path specified in messag
         }
     }
 }
-                    }
-
-## Running the tests
-Please note the tests include a small load test and therefore take some time to run.
-``` bash
-docker-compose up
-npm test
 ```
