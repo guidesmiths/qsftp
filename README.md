@@ -153,7 +153,8 @@ Uploads the message content to an sftp server using the path specified in messag
             "hostname": "localhost",
             "port": 10022,
             "username": "fred",
-            "password": "password"
+            "password": "password",
+            "folder": "/base"
         }
     }
 }

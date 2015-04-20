@@ -105,6 +105,29 @@ describe('uploadToSftpServer', function() {
         })
     })
 
+    it('should upload a simple message to a remote ftp server using the base folder', function(done) {
+
+        var message = {
+            qsftp: {
+                path: 'foo.txt'
+            }
+        }
+
+        uploadToSftpServer({
+            hostname: 'localhost',
+            port: 10022,
+            username: 'fred',
+            password: 'password',
+            folder: 'tests'
+        }, {}, function(err, middleware) {
+            assert.ifError(err)
+            middleware(message, 'foo', function(err) {
+                assert.ifError(err)
+                shaka(getUploadPath(message.qsftp.path), 'foo', done)
+            })
+        })
+    })
+
     it('should upload a large message to a remote ftp server', function(done) {
 
         var content = crypto.pseudoRandomBytes(1024 * 1024).toString('hex')
