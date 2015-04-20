@@ -18,6 +18,31 @@
                         }
                     }
                 }
+            },
+            "book_loan_v2": {
+                "sequence": ["messageToTemplateVars", "messageTimestampToTemplateVar",  "messageToPath", "uploadToSftpServer"],
+                "warez": {
+                    "messageTimestampToTemplateVar": {
+                        "options": {
+                            "source": "/properties/headers/timestamp",
+                            "destination": "timestamp",
+                            "template": "YYYY-MM-DD"
+                        }
+                    },
+                    "messageToPath": {
+                        "options": {
+                            "template": "tests/{{timestamp}}.txt"
+                        }
+                    },
+                    "uploadToSftpServer": {
+                        "options": {
+                            "hostname": "localhost",
+                            "port": 10022,
+                            "username": "fred",
+                            "password": "password"
+                        }
+                    }
+                }
             }
         }
     },
@@ -29,12 +54,19 @@
                     "e1": {}
                 },
                 "queues": {
-                    "q1": {}
+                    "q1": {},
+                    "q2": {}
                 },
                 "bindings": {
                     "b1": {
                         "source": "e1",
-                        "destination": "q1"
+                        "destination": "q1",
+                        "bindingKey": "library.v1.#"
+                    },
+                    "b2": {
+                        "source": "e1",
+                        "destination": "q2",
+                        "bindingKey": "library.v2.#"
                     }
                 }
             }
@@ -47,6 +79,11 @@
         "subscriptions": {
             "s1": {
                 "queue": "q1"
+            }
+        },
+        "subscriptions": {
+            "s2": {
+                "queue": "q2"
             }
         }
     }

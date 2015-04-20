@@ -68,6 +68,41 @@ describe('qsftp', function() {
         })
     })
 
+    it.only('should incorporate timestamps into the uploaded filename', function(done) {
+
+        var middleware = ware()
+        var content = crypto.pseudoRandomBytes(1024).toString('hex')
+
+        broker.publish('p1', content, {
+            routingKey: 'library.v2.book.978-3-16-148410-0.loan.created',
+            options: {
+                headers: {
+                    timestamp: 1429550153167
+                }
+            }
+        }, function(err, messageId) {
+            assert.ifError(err)
+
+            broker.subscribe('s2', function(err, message, content) {
+                middleware.run(message, content, function(err, message, content) {
+                    assert.ifError(err)
+                })
+            })
+
+            qsftp.init(config.qsftp.routes.book_loan_v2, {}, function(err, warez) {
+                assert.ifError(err)
+                _.each(warez, function(ware) {
+                    middleware.use(ware)
+                })
+            })
+
+            middleware.use(function(message, content) {
+                shaka(getUploadPath('2015-04-20' + '.txt'), content, done)
+            })
+
+        })
+    })
+
     function getUploadPath(filename) {
         return path.join(uploads, filename)
     }
