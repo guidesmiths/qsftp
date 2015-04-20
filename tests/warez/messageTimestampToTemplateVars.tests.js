@@ -8,9 +8,9 @@ var fs = require('fs-extra')
 var path = require('path')
 var crypto = require('crypto')
 
-var messageTimestampToTemplateVar = require('../..').warez.messageTimestampToTemplateVar
+var messageTimestampToTemplateVars = require('../..').warez.messageTimestampToTemplateVars
 
-describe('messageTimestampToTemplateVar', function() {
+describe('messageTimestampToTemplateVars', function() {
 
     it('should transform message timestamp into template vars', function(done) {
 
@@ -28,7 +28,7 @@ describe('messageTimestampToTemplateVar', function() {
             }
         }
 
-        messageTimestampToTemplateVar(config, {}, function(err, middleware) {
+        messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ifError(err)
@@ -54,7 +54,7 @@ describe('messageTimestampToTemplateVar', function() {
             }
         }
 
-        messageTimestampToTemplateVar(config, {}, function(err, middleware) {
+        messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ifError(err)
@@ -73,7 +73,7 @@ describe('messageTimestampToTemplateVar', function() {
         }
 
 
-        messageTimestampToTemplateVar(config, {}, function(err, middleware) {
+        messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
             middleware({}, 'content', function(err) {
                 assert.ok(err)
@@ -100,7 +100,7 @@ describe('messageTimestampToTemplateVar', function() {
             }
         }
 
-        messageTimestampToTemplateVar(config, {}, function(err, middleware) {
+        messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ok(err)
@@ -128,7 +128,7 @@ describe('messageTimestampToTemplateVar', function() {
             }
         }
 
-        messageTimestampToTemplateVar(config, {}, function(err, middleware) {
+        messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
             middleware(message, 'content', function(err) {
                 assert.ok(err)

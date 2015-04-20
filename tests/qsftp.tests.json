@@ -20,9 +20,9 @@
                 }
             },
             "book_loan_v2": {
-                "sequence": ["messageToTemplateVars", "messageTimestampToTemplateVar",  "messageToPath", "uploadToSftpServer"],
+                "sequence": ["messageToTemplateVars", "messageTimestampToTemplateVars",  "messageToPath", "uploadToSftpServer"],
                 "warez": {
-                    "messageTimestampToTemplateVar": {
+                    "messageTimestampToTemplateVars": {
                         "options": {
                             "source": "/properties/headers/timestamp",
                             "destination": "timestamp",
@@ -32,6 +32,24 @@
                     "messageToPath": {
                         "options": {
                             "template": "tests/{{timestamp}}.txt"
+                        }
+                    },
+                    "uploadToSftpServer": {
+                        "options": {
+                            "hostname": "localhost",
+                            "port": 10022,
+                            "username": "fred",
+                            "password": "password"
+                        }
+                    }
+                }
+            },
+            "book_loan_v3": {
+                "sequence": ["messageToTemplateVars", "contentDispositionToTemplateVars",  "messageToPath", "uploadToSftpServer"],
+                "warez": {
+                    "messageToPath": {
+                        "options": {
+                            "template": "tests/{{contentDisposition.filename}}"
                         }
                     },
                     "uploadToSftpServer": {
@@ -55,7 +73,8 @@
                 },
                 "queues": {
                     "q1": {},
-                    "q2": {}
+                    "q2": {},
+                    "q3": {}
                 },
                 "bindings": {
                     "b1": {
@@ -67,6 +86,11 @@
                         "source": "e1",
                         "destination": "q2",
                         "bindingKey": "library.v2.#"
+                    },
+                    "b3": {
+                        "source": "e1",
+                        "destination": "q3",
+                        "bindingKey": "library.v3.#"
                     }
                 }
             }
@@ -84,6 +108,11 @@
         "subscriptions": {
             "s2": {
                 "queue": "q2"
+            }
+        },
+        "subscriptions": {
+            "s3": {
+                "queue": "q3"
             }
         }
     }

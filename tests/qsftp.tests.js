@@ -68,7 +68,7 @@ describe('qsftp', function() {
         })
     })
 
-    it.only('should incorporate timestamps into the uploaded filename', function(done) {
+    it('should incorporate timestamps into the uploaded filename', function(done) {
 
         var middleware = ware()
         var content = crypto.pseudoRandomBytes(1024).toString('hex')
@@ -98,6 +98,41 @@ describe('qsftp', function() {
 
             middleware.use(function(message, content) {
                 shaka(getUploadPath('2015-04-20' + '.txt'), content, done)
+            })
+
+        })
+    })
+
+    it('should incorporate content disposition into the uploaded filename', function(done) {
+
+        var middleware = ware()
+        var content = crypto.pseudoRandomBytes(1024).toString('hex')
+
+        broker.publish('p1', content, {
+            routingKey: 'library.v3.book.978-3-16-148410-0.loan.created',
+            options: {
+                headers: {
+                    contentDisposition: 'attachment; filename="978-3-16-148410-0.txt"'
+                }
+            }
+        }, function(err, messageId) {
+            assert.ifError(err)
+
+            broker.subscribe('s3', function(err, message, content) {
+                middleware.run(message, content, function(err, message, content) {
+                    assert.ifError(err)
+                })
+            })
+
+            qsftp.init(config.qsftp.routes.book_loan_v3, {}, function(err, warez) {
+                assert.ifError(err)
+                _.each(warez, function(ware) {
+                    middleware.use(ware)
+                })
+            })
+
+            middleware.use(function(message, content) {
+                shaka(getUploadPath('978-3-16-148410-0' + '.txt'), content, done)
             })
 
         })

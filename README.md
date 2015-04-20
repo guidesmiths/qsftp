@@ -117,11 +117,11 @@ qsftp.init(config, { myCustomMiddleware: myCustomMiddleware }, function(err, war
 ### messageToTemplateVars
 Copies the raw message and content to message.qsftp.templateVars for use in later middleware
 
-### messageTimestampToTemplateVar
+### messageTimestampToTemplateVars
 Converts a timestamp (milliseconds since 01/01/1970) into a date string and stores it in message.qsftp.templateVars[destintation] for use in later middleware.
 ```json
 {
-    "messageTimestampToTemplateVar": {
+    "messageTimestampToTemplateVars": {
         "options": {
             "source": "/properties/headers/timestamp",
             "destination": "date",
@@ -131,6 +131,18 @@ Converts a timestamp (milliseconds since 01/01/1970) into a date string and stor
 }
 ```
 Source is [json pointers](https://www.npmjs.com/package/json-pointer). Destination is a simple key. The template is a [moment](https://www.npmjs.com/package/moment) date format string.
+
+### contentDispositionToTemplateVars
+Parses the contentDisposition header to to templateVars. The contentDisposition must be set as an attribute of the headers object, which is itself an attribute of the properties object, e.g.
+```js
+{
+    properites: {
+        headers: {
+            contentDisposition: 'attachment; filename="foo.txt"'
+        }
+    }
+}
+```
 
 ### messageToPath
 Extracts a path (for the sftp upload) by passing the template variables through a [hogan.js](https://www.npmjs.com/package/hogan.js) template. The rendered value is stored in message.qsftp.path
