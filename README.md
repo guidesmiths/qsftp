@@ -133,12 +133,12 @@ Converts a timestamp (milliseconds since 01/01/1970) into a date string and stor
 Source is [json pointers](https://www.npmjs.com/package/json-pointer). Destination is a simple key. The template is a [moment](https://www.npmjs.com/package/moment) date format string.
 
 ### contentDispositionToTemplateVars
-Parses the contentDisposition header to to templateVars. The contentDisposition must be set as an attribute of the headers object, which is itself an attribute of the properties object, e.g.
-```js
+Parses the contentDisposition header to to templateVars. The contentDisposition must be set as an attribute of the headers object, which is itself an attribute of the properties object. See the [Rascal](https://github.com/guidesmiths/rascal) documentation for how to set message headers when publishing. Once set the content disposition can be used when rendering the upload path, e.g.
+```json
 {
-    properites: {
-        headers: {
-            contentDisposition: 'attachment; filename="foo.txt"'
+    "messageToPath": {
+        "options": {
+            "template": "uploads/{{contentDisposition.filename}}"
         }
     }
 }
