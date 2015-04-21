@@ -45,6 +45,7 @@ describe('uploadToSftpServer', function() {
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'getaddrinfo ENOTFOUND')
+                assert.ok(err.recoverable)
                 done()
             })
         })
@@ -61,6 +62,7 @@ describe('uploadToSftpServer', function() {
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'All configured authentication methods failed')
+                assert.ok(err.recoverable)
                 done()
             })
         })
@@ -84,6 +86,7 @@ describe('uploadToSftpServer', function() {
             middleware(message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'No such file')
+                assert.ok(err.recoverable)
                 done()
             })
         })

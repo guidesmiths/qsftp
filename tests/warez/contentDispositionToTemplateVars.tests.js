@@ -10,7 +10,7 @@ var crypto = require('crypto')
 
 var contentDispositionToTemplateVars = require('../..').warez.contentDispositionToTemplateVars
 
-describe.only('contentDispositionToTemplateVars', function() {
+describe('contentDispositionToTemplateVars', function() {
 
     it('should parse the content disposition header into template vars', function(done) {
 

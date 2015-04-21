@@ -103,14 +103,10 @@
         "subscriptions": {
             "s1": {
                 "queue": "q1"
-            }
-        },
-        "subscriptions": {
+            },
             "s2": {
                 "queue": "q2"
-            }
-        },
-        "subscriptions": {
+            },
             "s3": {
                 "queue": "q3"
             }
