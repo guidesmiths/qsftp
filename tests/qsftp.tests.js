@@ -45,26 +45,26 @@ describe('qsftp', function() {
         var middleware = ware()
         var content = crypto.pseudoRandomBytes(1024).toString('hex')
 
-        broker.publish('p1', content, 'library.v1.book.978-3-16-148410-0.loan.created' , function(err, messageId) {
-            assert.ifError(err)
+        broker.publish('p1', content, 'library.v1.book.978-3-16-148410-0.loan.created' , assert.ifError)
 
-            broker.subscribe('s1', function(err, message, content) {
-                middleware.run(message, content, function(err, message, content) {
+        broker.subscribe('s1', function(err, subscription) {
+            assert.ifError(err)
+            subscription.on('message', function(message, content, ackOrNack) {
+                middleware.run(message, content, function(err) {
                     assert.ifError(err)
                 })
             })
+        })
 
-            qsftp.init(config.qsftp.routes.book_loan_v1, {}, function(err, warez) {
-                assert.ifError(err)
-                _.each(warez, function(ware) {
-                    middleware.use(ware)
-                })
+        qsftp.init(config.qsftp.routes.book_loan_v1, {}, function(err, warez) {
+            assert.ifError(err)
+            _.each(warez, function(ware) {
+                middleware.use(ware)
             })
+        })
 
-            middleware.use(function(message, content) {
-                shaka(getUploadPath(messageId + '.txt'), content, done)
-            })
-
+        middleware.use(function(message, content) {
+            shaka(getUploadPath(message.properties.messageId + '.txt'), content, done)
         })
     })
 
@@ -80,26 +80,27 @@ describe('qsftp', function() {
                     timestamp: 1429550153167
                 }
             }
-        }, function(err, messageId) {
+        }, assert.ifError)
+
+        qsftp.init(config.qsftp.routes.book_loan_v2, {}, function(err, warez) {
+            assert.ifError(err)
+            _.each(warez, function(ware) {
+                middleware.use(ware)
+            })
+        })
+
+        middleware.use(function(message, content) {
+            shaka(getUploadPath('2015-04-20' + '.txt'), content, done)
+        })
+
+        broker.subscribe('s2', function(err, subscription) {
             assert.ifError(err)
 
-            broker.subscribe('s2', function(err, message, content) {
+            subscription.on('message', function(message, content) {
                 middleware.run(message, content, function(err, message, content) {
                     assert.ifError(err)
                 })
             })
-
-            qsftp.init(config.qsftp.routes.book_loan_v2, {}, function(err, warez) {
-                assert.ifError(err)
-                _.each(warez, function(ware) {
-                    middleware.use(ware)
-                })
-            })
-
-            middleware.use(function(message, content) {
-                shaka(getUploadPath('2015-04-20' + '.txt'), content, done)
-            })
-
         })
     })
 
@@ -115,26 +116,15 @@ describe('qsftp', function() {
                     contentDisposition: 'attachment; filename="978-3-16-148410-0.txt"'
                 }
             }
-        }, function(err, messageId) {
-            assert.ifError(err)
+        }, assert.ifError)
 
-            broker.subscribe('s3', function(err, message, content) {
-                middleware.run(message, content, function(err, message, content) {
+        broker.subscribe('s3', function(err, subscription) {
+            subscription.on('message', function(message, content) {
+                middleware.run(message, content, function(err) {
                     assert.ifError(err)
+                    done()
                 })
             })
-
-            qsftp.init(config.qsftp.routes.book_loan_v3, {}, function(err, warez) {
-                assert.ifError(err)
-                _.each(warez, function(ware) {
-                    middleware.use(ware)
-                })
-            })
-
-            middleware.use(function(message, content) {
-                shaka(getUploadPath('978-3-16-148410-0' + '.txt'), content, done)
-            })
-
         })
     })
 

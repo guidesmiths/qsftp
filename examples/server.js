@@ -16,7 +16,10 @@ createUploadFolder(function(err) {
         if (err) return bail(err)
 
         setInterval(function() {
-            broker.publish('p1', format('This message was sent at: %s', new Date().toISOString()))
+            var message = format('This message was sent at: %s', new Date().toISOString())
+            broker.publish('p1', message, function(err, publication) {
+                if (err) bail(err)
+            })
         }, 1000).unref()
 
 
@@ -25,13 +28,15 @@ createUploadFolder(function(err) {
 
             var middleware = ware().use(warez)
 
-            broker.subscribe('s1', function(err, message, content, ackOrNack) {
+            broker.subscribe('s1', function(err, subscription) {
                 if (err) return bail(err)
-                console.log(format('Received: %s', content))
-                middleware.run(message, content, function(err) {
-                    if (err) return bail(err)
-                    ackOrNack()
-                })
+                subscription.on('message', function(message, content, ackOrNack) {
+                    console.log(format('Received: %s', content))
+                    middleware.run(message, content, function(err) {
+                        if (err) return bail(err)
+                        ackOrNack()
+                    })
+                }).on('error', bail)
             })
         })
     })
