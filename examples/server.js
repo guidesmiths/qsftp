@@ -32,7 +32,7 @@ createUploadFolder(function(err) {
                 if (err) return bail(err)
                 subscription.on('message', function(message, content, ackOrNack) {
                     console.log(format('Received: %s', content))
-                    middleware.run(message, content, function(err) {
+                    middleware.run({}, message, content, function(err) {
                         if (err) return bail(err)
                         ackOrNack()
                     })
