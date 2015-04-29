@@ -18,7 +18,7 @@ describe('messageToPath', function() {
             template: 'uploads/billing-run/{{billingDate}}/invoices.csv'
         }
 
-        var message = {
+        var flowScope = {
             qsftp: {
                 templateVars: {
                     billingDate: '2015/04/15'
@@ -28,9 +28,9 @@ describe('messageToPath', function() {
 
         messageToPath(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, {}, 'content', function(err) {
                 assert.ifError(err)
-                assert.equal(message.qsftp.path, 'uploads/billing-run/2015/04/15/invoices.csv')
+                assert.equal(flowScope.qsftp.path, 'uploads/billing-run/2015/04/15/invoices.csv')
                 done()
             })
         })

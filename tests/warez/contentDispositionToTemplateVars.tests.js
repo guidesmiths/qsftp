@@ -14,6 +14,9 @@ describe('contentDispositionToTemplateVars', function() {
 
     it('should parse the content disposition header into template vars', function(done) {
 
+        var flowScope = {
+        }
+
         var message = {
             properties: {
                 headers: {
@@ -24,10 +27,10 @@ describe('contentDispositionToTemplateVars', function() {
 
         contentDispositionToTemplateVars({}, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ifError(err)
-                assert.equal(message.qsftp.templateVars.contentDisposition.type, 'attachment')
-                assert.equal(message.qsftp.templateVars.contentDisposition.filename, 'foo.txt')
+                assert.equal(flowScope.qsftp.templateVars.contentDisposition.type, 'attachment')
+                assert.equal(flowScope.qsftp.templateVars.contentDisposition.filename, 'foo.txt')
                 done()
             })
         })
@@ -44,7 +47,7 @@ describe('contentDispositionToTemplateVars', function() {
 
         contentDispositionToTemplateVars({}, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware({}, message, 'content', function(err) {
                 assert.ok(err)
                 assert.equal(err.message, 'Content disposition header is required')
                 done()
@@ -64,7 +67,7 @@ describe('contentDispositionToTemplateVars', function() {
 
         contentDispositionToTemplateVars({}, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware({}, message, 'content', function(err) {
                 assert.ok(err)
                 assert.equal(err.message, 'Error parsing content disposition: attachment; filename=\"foo.txt\";. Original error was: invalid parameter format')
                 done()

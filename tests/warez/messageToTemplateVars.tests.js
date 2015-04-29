@@ -14,6 +14,8 @@ describe('messageToTemplateVars', function() {
 
     it('should copy message and content into template vars', function(done) {
 
+        var flowScope = {
+        }
         var message = {
             foo: 1
         }
@@ -23,10 +25,10 @@ describe('messageToTemplateVars', function() {
 
         messageToTemplateVars({}, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, content, function(err) {
+            middleware(flowScope, message, content, function(err) {
                 assert.ifError(err)
-                assert.equal(message.qsftp.templateVars.message.foo, 1)
-                assert.equal(message.qsftp.templateVars.content.bar, 2)
+                assert.equal(flowScope.qsftp.templateVars.message.foo, 1)
+                assert.equal(flowScope.qsftp.templateVars.content.bar, 2)
                 done()
             })
         })
@@ -35,6 +37,9 @@ describe('messageToTemplateVars', function() {
 
     it('should clone the message and content', function(done) {
 
+        var flowScope = {
+
+        }
         var message = {
             foo: 1
         }
@@ -44,14 +49,14 @@ describe('messageToTemplateVars', function() {
 
         messageToTemplateVars({}, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, content, function(err) {
+            middleware(flowScope, message, content, function(err) {
                 assert.ifError(err)
 
                 message.foo = 'x'
                 content.bar = 'x'
 
-                assert.equal(message.qsftp.templateVars.message.foo, 1)
-                assert.equal(message.qsftp.templateVars.content.bar, 2)
+                assert.equal(flowScope.qsftp.templateVars.message.foo, 1)
+                assert.equal(flowScope.qsftp.templateVars.content.bar, 2)
                 done()
             })
         })

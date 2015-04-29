@@ -20,6 +20,9 @@ describe('messageTimestampToTemplateVars', function() {
             template: 'YYYY/MM/DD'
         }
 
+        var flowScope = {
+        }
+
         var message = {
             properties: {
                 headers: {
@@ -30,9 +33,9 @@ describe('messageTimestampToTemplateVars', function() {
 
         messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ifError(err)
-                assert.equal(message.qsftp.templateVars.date, '2015/04/18')
+                assert.equal(flowScope.qsftp.templateVars.date, '2015/04/18')
                 done()
             })
         })
@@ -46,6 +49,9 @@ describe('messageTimestampToTemplateVars', function() {
             template: 'YYYY/MM/DD'
         }
 
+        var flowScope = {
+        }
+
         var message = {
             properties: {
                 headers: {
@@ -56,9 +62,9 @@ describe('messageTimestampToTemplateVars', function() {
 
         messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ifError(err)
-                assert.equal(message.qsftp.templateVars.date, '2015/04/18')
+                assert.equal(flowScope.qsftp.templateVars.date, '2015/04/18')
                 done()
             })
         })
@@ -72,10 +78,9 @@ describe('messageTimestampToTemplateVars', function() {
             template: 'YYYY/MM/DD'
         }
 
-
         messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware({}, 'content', function(err) {
+            middleware({}, {}, 'content', function(err) {
                 assert.ok(err)
                 assert.equal(err.message, 'Value for pointer \'headers,timestamp\' not found.')
                 done()
@@ -102,7 +107,7 @@ describe('messageTimestampToTemplateVars', function() {
 
         messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware({}, message, 'content', function(err) {
                 assert.ok(err)
                 assert.equal(err.message, 'a is not a valid timestamp')
                 done()
@@ -130,7 +135,7 @@ describe('messageTimestampToTemplateVars', function() {
 
         messageTimestampToTemplateVars(config, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware({}, message, 'content', function(err) {
                 assert.ok(err)
                 assert.equal(err.message, '-1 is not a valid timestamp')
                 done()

@@ -13,14 +13,16 @@ var uploadToSftpServer = require('../..').warez.uploadToSftpServer
 
 describe('uploadToSftpServer', function() {
 
+    this.timeout(2000)
     this.slow(undefined)
 
     var uploads = path.join(process.cwd(), 'tests', 'uploads')
-    var message = {
+    var flowScope = {
         qsftp: {
             path: 'tests/foo.txt'
         }
     }
+    var message = {}
 
     beforeEach(function(done) {
         async.series([
@@ -42,7 +44,7 @@ describe('uploadToSftpServer', function() {
             password: 'bad'
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'getaddrinfo ENOTFOUND')
                 assert.ok(err.recoverable)
@@ -59,7 +61,7 @@ describe('uploadToSftpServer', function() {
             password: 'bad'
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'All configured authentication methods failed')
                 assert.ok(err.recoverable)
@@ -70,7 +72,7 @@ describe('uploadToSftpServer', function() {
 
     it('should report failed uploads errors', function(done) {
 
-        var message = {
+        var flowScope = {
             qsftp: {
                 path: 'doesnotexist/foo.txt'
             }
@@ -83,7 +85,7 @@ describe('uploadToSftpServer', function() {
             password: 'password'
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'content', function(err) {
+            middleware(flowScope, message, 'content', function(err) {
                 assert.ok(err, 'Connection error was not reported')
                 assert.equal(err.message, 'No such file')
                 assert.ok(err.recoverable)
@@ -101,16 +103,16 @@ describe('uploadToSftpServer', function() {
             password: 'password',
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'foo', function(err) {
+            middleware(flowScope, message, 'foo', function(err) {
                 assert.ifError(err)
-                shaka(getUploadPath(message.qsftp.path), 'foo', done)
+                shaka(getUploadPath(flowScope.qsftp.path), 'foo', done)
             })
         })
     })
 
     it('should upload a simple message to a remote ftp server using the base folder', function(done) {
 
-        var message = {
+        var flowScope = {
             qsftp: {
                 path: 'foo.txt'
             }
@@ -124,9 +126,9 @@ describe('uploadToSftpServer', function() {
             folder: 'tests'
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, 'foo', function(err) {
+            middleware(flowScope, message, 'foo', function(err) {
                 assert.ifError(err)
-                shaka(getUploadPath(message.qsftp.path), 'foo', done)
+                shaka(getUploadPath(flowScope.qsftp.path), 'foo', done)
             })
         })
     })
@@ -135,7 +137,7 @@ describe('uploadToSftpServer', function() {
 
         var content = crypto.pseudoRandomBytes(1024 * 1024).toString('hex')
 
-        var message = {
+        var flowScope = {
             qsftp: {
                 path: 'tests/1mb.txt',
             }
@@ -148,9 +150,9 @@ describe('uploadToSftpServer', function() {
             password: 'password',
         }, {}, function(err, middleware) {
             assert.ifError(err)
-            middleware(message, content, function(err) {
+            middleware(flowScope, message, content, function(err) {
                 assert.ifError(err)
-                shaka(getUploadPath(message.qsftp.path), content, done)
+                shaka(getUploadPath(flowScope.qsftp.path), content, done)
             })
         })
     })
@@ -158,7 +160,6 @@ describe('uploadToSftpServer', function() {
     it('should upload a lots of message to a remote ftp server', function(done) {
 
         this.timeout(numMessages * 500)
-        this.slow(numMessages * 500)
 
         var numMessages = 1000
         var numErrors = 0
@@ -171,8 +172,8 @@ describe('uploadToSftpServer', function() {
         }, {}, function(err, middleware) {
             assert.ifError(err)
             var q = async.queue(function(data, next) {
-                middleware(data.message, data.content, function(err) {
-                    if (!err) return shaka(getUploadPath(data.message.qsftp.path), data.content, next)
+                middleware(data.flowScope, message, data.content, function(err) {
+                    if (!err) return shaka(getUploadPath(data.flowScope.qsftp.path), data.content, next)
                     console.warn(err.message)
                     numErrors++
                     next()
@@ -181,7 +182,7 @@ describe('uploadToSftpServer', function() {
 
             _.times(numMessages, function(index) {
                 q.push({
-                    message: {
+                    flowScope: {
                         qsftp: {
                             path: 'tests/' + _.padLeft(index + '.txt', 4, '0'),
                         }

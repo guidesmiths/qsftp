@@ -50,7 +50,7 @@ describe('qsftp', function() {
         broker.subscribe('s1', function(err, subscription) {
             assert.ifError(err)
             subscription.on('message', function(message, content, ackOrNack) {
-                middleware.run(message, content, function(err) {
+                middleware.run({}, message, content, function(err) {
                     assert.ifError(err)
                 })
             })
@@ -63,7 +63,7 @@ describe('qsftp', function() {
             })
         })
 
-        middleware.use(function(message, content) {
+        middleware.use(function(flowScope, message, content) {
             shaka(getUploadPath(message.properties.messageId + '.txt'), content, done)
         })
     })
@@ -89,7 +89,7 @@ describe('qsftp', function() {
             })
         })
 
-        middleware.use(function(message, content) {
+        middleware.use(function(flowScope, message, content) {
             shaka(getUploadPath('2015-04-20' + '.txt'), content, done)
         })
 
@@ -97,7 +97,7 @@ describe('qsftp', function() {
             assert.ifError(err)
 
             subscription.on('message', function(message, content) {
-                middleware.run(message, content, function(err, message, content) {
+                middleware.run({}, message, content, function(err) {
                     assert.ifError(err)
                 })
             })
@@ -120,7 +120,7 @@ describe('qsftp', function() {
 
         broker.subscribe('s3', function(err, subscription) {
             subscription.on('message', function(message, content) {
-                middleware.run(message, content, function(err) {
+                middleware.run({}, message, content, function(err) {
                     assert.ifError(err)
                     done()
                 })
