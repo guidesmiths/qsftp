@@ -13,7 +13,7 @@ var uploadToSftpServer = require('../..').warez.uploadToSftpServer
 
 describe('uploadToSftpServer', function() {
 
-    this.slow(2000)
+    this.slow(undefined)
 
     var uploads = path.join(process.cwd(), 'tests', 'uploads')
     var message = {
