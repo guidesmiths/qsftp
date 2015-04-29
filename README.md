@@ -81,11 +81,13 @@ rascal.createBroker(rascal.withDefaultConfig(config.rascal), function(err, broke
 
         var middleware = ware().use(warez)
 
-        broker.subscribe('s1', function(err, message, content, ackOrNack) {
+        broker.subscribe('s1', function(err, subscription) {
             if (err) return bail(err)
-            middleware.run(message, content, function(err) {
-                if (err) return bail(err)
-                ackOrNack()
+            subscription.on('message', function(message, content, ackOrNack) {
+                middleware.run({}, message, content, function(err) {
+                    if (err) return bail(err)
+                    ackOrNack()
+                })
             })
         })
     })
@@ -97,14 +99,14 @@ From this point on, any message sent to the queue will be uploaded to the remote
 qsftp comes with some out of the box middleware but it's easy to substitute or include your own. All you need is a module that exports a single "initialiser" function, responsible for initialising the middleware, e.g.
 ```js
 module.exports = function(config, context, callback) {
-    callback(null, function(message, content, next) {
-        // Do stuff with the message or content
+    callback(null, function(flowScope, message, content, next) {
+        // Do stuff
     })
 }
 ```
 The initialiser function should expect three arguments, config, context and a callback. "config" will contain any options specified in the qsftp warez configuration, "context" is in case you need shared state between your middleware and "callback" should provide the middleware function to qsftp
 
-The middleware function should also expect three arguments, message, content and next. "message" is the raw message received from amqp, "content" is the message content (json, text or buffer) and "next" is the callback to continue to the next middleware in the sequence.
+The middleware function should expect four arguments, flowScope, message, content and next. "flowScope" is a context object scoped to this run of the middleware, "message" is the raw message received from amqp, "content" is the message content (json, text or buffer) and "next" is the callback to continue to the next middleware in the sequence.
 
 You specify your middleware when initialising qsftp
 ```js
@@ -115,10 +117,10 @@ qsftp.init(config, { myCustomMiddleware: myCustomMiddleware }, function(err, war
 ## Provided Middleware
 
 ### messageToTemplateVars
-Copies the raw message and content to message.qsftp.templateVars for use in later middleware
+Copies the raw message and content to flowScope.qsftp.templateVars for use in later middleware
 
 ### messageTimestampToTemplateVars
-Converts a timestamp (milliseconds since 01/01/1970) into a date string and stores it in message.qsftp.templateVars[destintation] for use in later middleware.
+Converts a timestamp (milliseconds since 01/01/1970) into a date string and stores it in flowScope.qsftp.templateVars[destintation] for use in later middleware.
 ```json
 {
     "messageTimestampToTemplateVars": {
@@ -145,7 +147,7 @@ Parses the contentDisposition header to to templateVars. The contentDisposition 
 ```
 
 ### messageToPath
-Extracts a path (for the sftp upload) by passing the template variables through a [hogan.js](https://www.npmjs.com/package/hogan.js) template. The rendered value is stored in message.qsftp.path
+Extracts a path (for the sftp upload) by passing the template variables through a [hogan.js](https://www.npmjs.com/package/hogan.js) template. The rendered value is stored in flowScope.qsftp.path
 ```json
 {
     "messageToPath": {
@@ -157,7 +159,7 @@ Extracts a path (for the sftp upload) by passing the template variables through 
 ```
 
 ### uploadToSftpServer
-Uploads the message content to an sftp server using the path specified in message.qsftp.path.
+Uploads the message content to an sftp server using the path specified in flowScope.qsftp.path.
 ```json
 {
     "uploadToSftpServer": {
