@@ -10,6 +10,7 @@ sftp:
   image: atmoz/sftp
   command: fred:password:1001
   volumes:
+   - tests/sshd_config:/etc/ssh/sshd_config:rw
    - tests/uploads:/home/fred/tests:rw
    - examples/uploads:/home/fred/examples:rw
   ports:

@@ -6,7 +6,8 @@
   "scripts": {
     "up": "docker-compose up -d",
     "test": "mocha --recursive tests",
-    "example": "node examples/server"
+    "example": "node examples/server",
+    "prepush": "npm test"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "chalk": "^1.0.0",
     "fs-extra": "^0.18.1",
+    "husky": "^0.7.0",
     "mocha": "^2.2.4",
     "request": "^2.55.0",
     "ware": "^1.2.0"
@@ -38,6 +40,6 @@
     "lodash": "^3.6.0",
     "moment": "^2.10.2",
     "rascal": "^0.5.0",
-    "ssh2": "^0.4.6"
+    "ssh2": "^0.4.7"
   }
 }

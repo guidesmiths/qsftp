@@ -173,6 +173,7 @@ describe('uploadToSftpServer', function() {
             assert.ifError(err)
             var q = async.queue(function(data, next) {
                 middleware(data.flowScope, message, data.content, function(err) {
+                    assert.ifError(err)
                     if (!err) return shaka(getUploadPath(data.flowScope.qsftp.path), data.content, next)
                     console.warn(err.message)
                     numErrors++
